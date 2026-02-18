@@ -1,0 +1,320 @@
+---
+title: "Introduction To R"
+author: "Rylee Elling"
+date: "2026-02-02"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assignment operators
+
+In R, there are three assignment operators:
+
+  - '->',  
+  - '=',   
+  - '<-'.
+
+
+## R is a Vector Language
+
+
+```{r}
+x_vec = rnorm(n=10, mean=0, sd=1) #generating std normal dist data
+x_vec > 0 #finding which elements in x are larger than 0
+
+sum(x_vec > 0) #summing the number of elements (how many are > 0)
+```
+Looking at the output from the code above, both obtained outputs are vectors.
+x_vec > 0 returns a vector of size 10 (T/F for each element)
+sum(x_vec > 0) returns a vector of size 1 
+
+## Atomic Vectors: Data Types
+
+There are four data types we will utilize the most in our course:
+  - Character (used for text/string)  
+  - Double (Real or Decimal)  
+  - Integer (No fractions)  
+  - Logical (T or F)  
+  
+We can check the type of an object:
+```{r}
+typeof(x_vec)
+```
+
+```{r}
+dept = c('ACC', 'ECO', 'FIN', 'ISA', 'MGMT')
+nfaculty_dec = c(18, 19, 14, 25, 22)
+nfaculty = c(18L, 19L, 14L, 25L, 22L)
+n_mixed = c('string', 13L, 401)
+n_mixed_num = c(131L, 402)
+
+typeof(dept)
+typeof(nfaculty_dec)
+typeof(nfaculty)
+typeof(n_mixed)
+typeof(n_mixed_num)
+
+print('-----------------')
+class(dept)
+class(nfaculty_dec)
+class(nfaculty)
+class(n_mixed)
+class(n_mixed_num)
+```
+
+## Data Structures: 1D to 2D [In Code]
+
+```{r}
+library(tibble)
+fsb_tbl <- tibble(
+  department = dept,
+  count = nfaculty,
+  percentage = count / sum(count))
+fsb_tbl
+
+```
+
+
+
+## Lists
+
+```{r}
+lst <- list(
+  1:3, # atomic double/numeric vector of length 3
+  'a', # atomic character vector of length 1 (aka scalar)
+  c(TRUE, FALSE, TRUE), # atomic logical vector of length 3
+  c(2.3, 5.9) # atomic double/numeric vector of length = 2
+)
+lst 
+
+str(lst)
+```
+
+A list can contain other lists, i.e. recursive.
+
+```{r}
+str(
+  list(first_el = lst, second_el= iris)
+)
+```
+
+```{r}
+
+sublist1 = lst[1]
+from_sublist_to_underlying_structure = lst[1] # we get a list
+more_subset = lst[[1]] # we get the further underlying structure, in this case an integer
+```
+
+
+## Matrices
+
+We won't use all that often in class.
+A matrix is a 2D data structure made of ONE data type.
+The length of each of its vectors must be the same, giving it its rectangular structure
+
+```{r}
+x_mat = matrix( sample(1:10, size = 4), nrow=2,ncol=2)
+str(x_mat)
+x_mat # printing nicely
+print('-----------------')
+x_mat[1,2]
+print('-----------------')
+x_mat[,2]
+
+```
+
+## Data Frames
+
+A data frame is a named list of vectors with attributes for (column) names, row.names, and its class, “data.frame”.
+
+```{r}
+df1 <- data.frame(x = 1:3, y = letters[1:3])
+typeof(df1) # showing that its a special case of a list
+
+attributes(df1) # but also is of class data.frame
+```
+
+A data frame has an additional constraint: the length of each of its vectors must be the same.
+
+Why are 'Data Frames' generally more useful for data analysis than 'Matrices'?
+
+  - Data frames can store different data types in different columns
+
+## Tibbles
+
+Print easier than data frames. 
+
+Tibbles are designed to be safer and more user-friendly: they print a compact preview, avoid automatic string-to-factor conversion, and are stricter about subsetting (for example, they don’t do partial name matching and are less likely to simplify results unexpectedly).
+
+Tibbles print more rows and columns by default, never convert strings to factors automatically, and use stricter subsetting that is less likely to silently drop types or dimensions. 
+
+# Functions
+
+A function call consists of the function name followed by one or more argument within parentheses.
+Function name: mean(), a built-in R funciton to compute mean of a vector
+
+```{r}
+temp_high_forecast <- c(87, 84, 85, 89, 9, 84, 81)
+
+```
+
+You can call a function by name or by position
+
+```{r}
+mean(x=temp_high_forecast, trim=0.1) # by name
+mean(temp_high_forecast, 0.1) # by position
+```
+
+Use Functions from Packages
+
+```{r}
+#dplyr::cummean(temp_high_forecast)
+#dplyr::first(temp_high_forecast)
+#dplyr::last(temp_high_forecast)
+```
+
+
+
+
+# Subsetting
+
+
+
+Atomic vectors are 1D data structures where all elements must have the same type. Since they are 1D, subset using [element_no(s)].
+
+```{r}
+x_vec = rnorm(3)
+x_vec[c(1,3)]
+x_vec[c(1,2,3)]
+x_vec[1]
+```
+
+A matrix is a 2D data structure made of one/homogeneous data type.
+
+```{r}
+x_mat = matrix( sample(1:10, size = 4), nrow = 2, ncol = 2 )
+x_mat # printing it nicely
+print('-----------------')
+x_mat[1, 2] # subsetting
+```
+```{r}
+x_char = matrix( sample(letters, size = 12), nrow = 3, ncol =4 )
+x_char
+x_char[1:2, 2:3] # subsetting
+```
+
+Lists
+
+[ subsets and always returns a list 
+
+[[ extracts a single element from the list
+
+$ is shorthand for extracting a named element (like x[["y"]]).
+
+```{r}
+lst <- list( 1:5, "a", c(TRUE, FALSE, TRUE), c(2.3, 5.9) )
+lst[4]
+lst[[4]]
+```
+
+```{r}
+my_list <- list(name = "Alice", age = 30, scores = c(85, 90, 78))
+
+my_list[1]
+my_list[[1]]
+```
+
+
+Tibbles
+
+Subset tibbles to 1D subset with [[]] or $ 
+Subset tibbles by columns with [] or [, col]
+Subset tibbles by row with [row,]
+Rows and cols with [row,col]
+
+Summary:
+Use [[ to extract 1d vectors from 2d tibbles
+Use [ to subset tibbles to a new tibble
+  - numbers (positive/negative) as indices
+  - characters (column names) as indices
+  - logicals as indices
+
+```{r}
+dept = c('ACC', 'ECO', 'FIN', 'ISA', 'MGMT')
+nfaculty = c(18L, 19L, 14L, 25L, 22L)
+fsb_tbl <- tibble::tibble(
+  department = dept, 
+  count = nfaculty, 
+  percentage = count / sum(count))
+fsb_tbl
+
+print('-----------------')
+# subset to 1D
+fsb_tbl[["count"]] # column name
+fsb_tbl[[2]] # column position
+fsb_tbl$count # column name
+
+print('-----------------')
+# subset by col
+fsb_tbl["count"]
+fsb_tbl[2] # for data.frames -> fsb_tbl[, 2]
+
+print('-----------------')
+# subset by row
+fsb_tbl[c(1, 3), ]
+fsb_tbl[-c(2, 4), ]
+
+print('-----------------')
+# subset by row and col
+fsb_tbl[1:3, 2:3]
+## ## fsb_tbl[-4, 2:3] # same as above
+## ## fsb_tbl[1:3, c("count". "percentage")] # same result
+## ## fsb_tbl[c(rep(TRUE, 3), FALSE), 2:3] # same as above
+
+```
+
+```{r}
+fsb_tbl[["count"]] # will produce 1-D vector
+fsb_tbl$count # will produce 1D vector
+# Resulting in tibbles
+fsb_tbl[, 2]
+fsb_tbl[1:3, 2:3]
+```
+
+
+
+## Importing Data
+
+Reading Plain-Text Rectangular
+
+  - delimited text files with read_delim()
+    - .csv: comma separated values with read_csv()
+    - .tsv: tab separated values read_tsv()
+  - .fwf: fixed width files with read_fwf()
+
+```{r}
+# when there is an =, that means there is a defaut value
+readr::read_csv(
+  file,
+  col_names = TRUE,
+  col_types = NULL,
+  locale = default_locale(),
+  na = c("", "NA"),
+  quoted_na = TRUE,
+  quote = "\"",
+  comment = "",
+  trim_ws = TRUE,
+  skip = 0,
+  n_max = Inf,
+  guess_max = min(1000, n_max),
+  progress = show_progress(),
+  skip_empty_rows = TRUE
+)
+```
+

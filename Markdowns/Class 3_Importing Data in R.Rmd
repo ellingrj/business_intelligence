@@ -1,0 +1,102 @@
+---
+title: "Data Importation Practice"
+author: "Rylee Elling"
+date: "2026-02-04"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    code_download: true
+    code_folding: show
+
+---
+
+# Reading CSV Files
+
+## Locally
+
+Note: Because you chose to use RMarkdown, there could be discrepancy between the path needed for when you run the code line by line and when you run it in RMarkdown.
+
+  - **RMarkdown:** Uses the path based on the RMarkdown file location.
+  - **Line-by-line Testing:** Uses the path based on the Project location.
+  
+Fix: Whenever we open a RMarkdown, we will automatically set the working directory to the folder containing the markdown. 
+How to: Go to files on the side, click the settings (ensure you are in the folder you want), select "Set as Working Directory"
+Check the Working Directory: write getwd() in console
+
+## From a Local Path
+
+```{r}
+usa_df = readr::read_csv("../Data/US000.csv")
+```
+
+## From an Online Location
+
+```{r}
+unemp_rate <- readr::read_csv("https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23ebf3fb&chart_type=line&drp=0&fo=open%20sans&graph_bgcolor=%23ffffff&height=450&mode=fred&recession_bars=on&txtcolor=%23444444&ts=12&tts=12&width=1320&nt=0&thu=0&trc=0&show_legend=yes&show_axis_titles=yes&show_tooltip=yes&id=UNRATE&scale=left&cosd=1948-01-01&coed=2025-12-01&line_color=%230073e6&link_values=false&line_style=solid&mark_type=none&mw=3&lw=3&ost=-99999&oet=99999&mma=0&fml=a&fq=Monthly&fam=avg&fgst=lin&fgsnd=2020-02-01&line_index=1&transformation=lin&vintage_date=2026-02-04&revision_date=2026-02-04&nd=1948-01-01")
+```
+ 
+Gives us a quick glimpse of the data
+```{r}
+dplyr::glimpse(unemp_rate)
+```
+
+
+## From GitHUb
+
+You need to get the path for the raw file since that strips away any HTML.
+
+Do this by clicking "Raw" on the github page and then saving the link to the raw page
+
+```{r}
+super_ad <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/2e9bd5a67e09b14d01f616b00f7f7e0931515d24/data/2021/2021-03-02/youtube.csv")
+```
+
+
+## JSON Files
+
+JSON stands for JavaScript Object Notation
+
+Most common way of returning results from an API.
+
+Remember to switch working directory to the folder this file is in. 
+
+To read JSON files we will use the **jsonlite** package. 
+
+```{r json_demo}
+cincy_jobs = jsonlite::fromJSON(
+  txt = "https://www.themuse.com/api/public/jobs?page=1&location=Cincinnati%2C%20OH", flatten = T
+)
+
+names(cincy_jobs) # a quick look of what we just read
+
+#we know to look at results by looking at our data and seeing that that is where the good stuff is
+cincy_jobs_res = cincy_jobs[['results']]
+# cincy_jobs$results does the same thing
+
+
+#The following is optional
+
+#overwriting the results
+cincy_jobs_res = cincy_jobs_res |> tidyr::unnest(
+  #specifying cols that are lists and hoping to make them contain single values 
+  cols=c('locations', 'categories', 'levels'),
+  names_repair = "universal"
+  #identified by running dplyr::glimpse(cincy_jobs_res)
+) #does seem like we lose data by doing this
+# will take extra work or something depending on how you want to analyse the data
+
+#if you want to combine the different rows for that same job that got put in 4 rows in the function above
+#you can go by jobid (unique) and then summarise to combine the locations field using commas
+# with the constraint of keeping all cols
+#dplyr::group_by(id) |> dplyr::summarise(#unfinished
+  
+#)
+
+```
+
+Note that the choice of converting list cols to separate cols/rows will depend on your data analysis stretch. 
+
+
+

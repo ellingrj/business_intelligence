@@ -1,0 +1,113 @@
+---
+title: "Class 4 - Connecting to APIs"
+author: "Rylee Elling"
+date: "2026-02-09"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    code_download: true
+    code_folding: show
+---
+
+##API Demo: USA Jobs
+
+```{r}
+# var request = require('request');    
+#             
+# var host = 'data.usajobs.gov';  
+# var userAgent = 'your@email.address';  
+# var authKey = 'YourAPIKey';    
+#             
+# request({      
+#     url: 'https://data.usajobs.gov/api/search?JobCategoryCode=2210&Keyword=Software Development&LocationName=Washington, DC',      
+#     method: 'GET',      
+#     headers: {          
+#         "Host": host,          
+#         "User-Agent": userAgent,          
+#         "Authorization-Key": authKey      
+#     }  
+# }, function(error, response, body) {      
+#     var data = JSON.parse(body);  
+# }); #javascript ref
+
+#usethis::edit_r_environ("project") type this into terminal to connect API environment key; creates .renviron file to save keys
+
+host = 'data.usajobs.gov'
+user_Agent = 'ellingrj@miamioh.edu'
+auth_key = Sys.getenv('USJOBS_API_KEY') #built in function to pull the API key from the R environment
+
+req = httr2::request('https://data.usajobs.gov/api/search') |>
+  httr2::req_method("GET") |>
+  httr2::req_url_query(
+    JobCategoryCode=2210, # showing an ex similar to the doc
+    Keyword = "Data Analyst", # we are asked to find data analyst jobs
+    #could have also added location name, but we were not asked to 
+    ResultsPerPage = 500
+    ) |>
+  httr2::req_headers(
+    #left hand side is the name from the argument for the request headers per the API
+    #RHS is the name of the object as we created it in R
+    Host = host, 
+    `User-Agent` = user_Agent, #R does not like spaces of dashes, so we use the back tick to tell it that that is a name
+    `Authorization-Key` = auth_key
+    
+  )
+
+response = httr2::req_perform(req) #executes the request and gets a response back
+
+#getting the data out of the response
+
+#response$body 
+#quick view of what our data is
+
+usajobs_data = response |>
+  httr2::resp_body_json()
+ 
+
+usajobs_data
+
+#also acceptable
+usajobs_data = response |>
+  httr2::resp_body_string() |>
+  jsonlite::fromJSON(flatten = T)
+
+#usajobs_data # returned a nested list, which we examined in the environment viewer (clicked the var in the global envir)
+dplyr::glimpse(usajobs_data) # not nice, but another way to see it
+
+#from the glimpse, we saw Search Result Items was a df
+
+usajobs_df <- usajobs_data$SearchResult$SearchResultItems |>
+# by looking at the data in the global environment, we can see many cols in this df have more dfs
+# to pull list cols from the data (i.e. a col that has a df)
+  #just an ex, didn't remove all the problem children 
+tidyr::unnest(
+  cols = c("MatchedObjectDescriptor.PositionLocation", "MatchedObjectDescriptor.JobCategory", "MatchedObjectDescriptor.PositionOfferingType" ), 
+  names_sep = '.' # this chooses what will be added to create unique names (basically from my undertsanding it takes the outer name and inner name and creates a new name that is both separated by a . )
+              )
+#names(usajobs_df)
+
+
+# to answer the question in the slides, there are 31 available data analyst jobs
+# be careful, it says 32 obs but only 31 unique job ids (our nest split one job with several locations into 2 rows)
+
+
+#this is my attempt to remove the duplicate, its not ideal but it works
+unique_jobs <- usajobs_data$SearchResult$SearchResultItems
+
+table(unique_jobs$MatchedObjectDescriptor.DepartmentName)
+
+
+#to do it with a package
+#no real solution for duplicates yet
+usajobs_df |>
+  dplyr:: count(MatchedObjectDescriptor.DepartmentName)
+# solution for duplicates is added to the lesson
+
+```
+
+1. To answer the question on the slides, there are 31 federally available data analyst related jobs. 
+Found using `unique(usajobs_df$MatchedObjectId) |> length()` 
+
+2. 

@@ -1,0 +1,120 @@
+---
+title: "Class 5 _ Web Scraping"
+author: "Rylee Elling"
+date: "2026-02-16"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    number_sections: TRUE
+    code_download: TRUE
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Example for site 1
+robotstxt::paths_allowed(
+  paths  = "/ooh/", domain = "www.bls.gov", bot    = "*"
+)
+
+# Returns TRUE - allowed
+
+
+robotstxt::paths_allowed(
+  paths  = "/jobs/", domain = "www.indeed.com", bot    = "*"
+)
+
+# Returns TRUE - allowed
+
+robotstxt::paths_allowed(
+  paths  = "/jobs/", domain = "www.linkedin.com", bot    = "*"
+)
+
+# Returns FALSE - not allowed to scrape
+```
+
+# Scraping the BLS Webpage
+
+In this example, we will be scraping the [Top Growing Jobs BLS Web Page](https://www.bls.gov/emp/tables/fastest-growing-occupations.htm).
+
+```{r web_page_bls}
+#step 0: am I allowed to scrape this web page?
+
+robotstxt::paths_allowed(
+  paths = "/emp/", #The first path after the domain that we want to access
+  domain = "https://www.bls.gov"
+  
+)
+
+#Returns TRUE, so we can scrape under emp
+
+#Step 1
+#Get the backend HTML page into R
+
+#bls_fail = rvest::read_html(
+ # "https://www.bls.gov/emp/tables/fastest-growing-occupations.htm"
+#)
+#for this ex, the simple rvest read_html method failed bc it would not open the connection
+#It fails, we expected that, lets try something that works
+#We will start by declaring ourselves
+
+
+# # First method we are shown 
+# page <- resp |> httr2::resp_body_raw() |> rvest::read_html()
+# 
+# print(page)
+# 
+# table_1 = page |> rvest::html_elements("#BLStable_2025_7_18_12_5.regular")
+# 
+# table_1_clean <- table_1 |> rvest::html_table()
+# #it was saved as a list so we unlist it
+# table_1_clean <- table_1_clean[[1]]
+# head(table_1_clean)
+
+
+#ANOTHER METHOD
+
+resp = httr2::request("https://www.bls.gov/emp/tables/fastest-growing-occupations.htm") |>
+  httr2::req_user_agent("ISA401 Course Project Scraper") |>
+  httr2::req_perform()
+
+#we get a list of 8 from that response
+
+#Our expectation is that bls_webpage will be a list of 2 that contains the head [metadata] and the body [what we see] of the webpage
+bls_webpage = resp |>
+  httr2::resp_body_raw() |>
+  rvest::read_html()
+
+
+
+# Step 2 & 3: Extract the employment projections table
+# aka extracting our point of interest
+tables <- bls_webpage |> rvest::html_elements("#BLStable_2025_7_18_12_5") # extracted the table id by inspecting the page
+
+#making it readable
+table_1_clean <- tables |> rvest::html_table()
+#it was saved as a list so we unlist it
+table_1_clean <- table_1_clean[[1]]
+head(table_1_clean)
+
+
+#alt cleaning
+# table_1 = page |> rvest::html_elements("table") |> #can just look for a table (or even just the class .regular, bc the page we were looking at had only 1 table)
+#   rvest::html_table() |>
+#   magrittr::extract2(1) #extract2 fn is equivalent to [[]]
+
+
+
+
+```
+
+
+
+
+
+
+
