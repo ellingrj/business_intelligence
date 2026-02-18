@@ -1,0 +1,20 @@
+---
+title: "Cbus Project"
+author: "Rylee Elling"
+date: "2026-02-16"
+output: html_document
+---
+
+```{r}
+listings <- readr::read_csv("data/listings.csv") # you need to set up the path correctly
+str(listings)    # inspect the structure
+readr::write_rds(listings, "data/listings.rds") # see https://readr.tidyverse.org/reference/read_rds.html 
+
+head(listings)
+```
+
+
+```{r}
+usethis::edit_r_environ(scope = "project") # you will not need to do this if you are using the R project environemnt from class
+```
+
