@@ -6,11 +6,14 @@ output: html_document
 ---
 
 ```{r}
-listings <- readr::read_csv("data/listings.csv") # you need to set up the path correctly
-str(listings)    # inspect the structure
-readr::write_rds(listings, "data/listings.rds") # see https://readr.tidyverse.org/reference/read_rds.html 
+df = readxl::read_excel(path ='401_data.xlsx', sheet=1, na=c("","**","~","*","#"))
+#if you wanted to make values NA repped by NA, use na=c("","**","~","*","#") after sheet
 
-head(listings)
+
+querychat::querychat_app(
+  df, "our_data", greeting = "Welcome to Rylee's Data Explorer App!",
+  client = "openai/gpt-5-mini-2025-08-07"
+)
 ```
 
 
